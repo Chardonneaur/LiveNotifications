@@ -146,19 +146,20 @@
                 gain.connect(ctx.destination);
 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, now + startOffset);
+                osc.frequency.value = freq;
 
-                // Soft attack then exponential decay
-                gain.gain.setValueAtTime(0, now + startOffset);
-                gain.gain.linearRampToValueAtTime(0.25, now + startOffset + 0.025);
+                // Start at 0.28 and exponentially decay — avoids the "ramp from zero"
+                // problem: exponentialRampToValueAtTime is mathematically undefined when
+                // the starting gain is 0 and silently fails in Chrome and Firefox.
+                gain.gain.setValueAtTime(0.28, now + startOffset);
                 gain.gain.exponentialRampToValueAtTime(0.0001, now + startOffset + duration);
 
                 osc.start(now + startOffset);
-                osc.stop(now + startOffset + duration + 0.01);
+                osc.stop(now + startOffset + duration + 0.05);
             }
 
-            tone(880.00,    0,    0.35);   // A5  — first note
-            tone(1108.73,  0.18,  0.45);   // C#6 — second note (pleasant rising interval)
+            tone(880.00,   0,     0.4);   // A5  — first note
+            tone(1108.73,  0.2,   0.5);   // C#6 — second note (pleasant rising interval)
         }
 
         try {
@@ -202,22 +203,37 @@
      * We try each in order and fall back to inserting before the list element.
      */
     function injectMuteButton(liveEl) {
-        var $widget = $(liveEl).closest('.widget, .card');
-
-        // Avoid double-injection if the widget was re-used
-        if ($widget.find('.' + BTN_CLASS).length) {
-            // Button already present — update its visual state in case mute changed
-            updateButtonUI($widget.find('.' + BTN_CLASS));
+        // Avoid double-injection — check both inside a widget parent and as a sibling
+        var $existing = $(liveEl).siblings('.' + BTN_CLASS)
+            .add($(liveEl).closest('.widget, .card').find('.' + BTN_CLASS));
+        if ($existing.length) {
+            updateButtonUI($existing.first());
             return;
         }
 
-        var $btn = $('<button type="button"></button>').addClass(BTN_CLASS);
+        var $btn = $('<button type="button"></button>')
+            .addClass(BTN_CLASS)
+            // Inline fallback styles guarantee visibility even if the LESS file
+            // was not compiled or the asset cache is stale.
+            .css({
+                background: 'transparent',
+                border: '1px solid transparent',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                lineHeight: '1',
+                padding: '2px 6px',
+                verticalAlign: 'middle',
+                opacity: '0.7'
+            });
         updateButtonUI($btn);
 
-        // Resume/create AudioContext on first user interaction with the button
-        // to satisfy browser autoplay policies for subsequent automatic plays.
+        $btn.on('mouseenter', function () { $(this).css('opacity', '1'); });
+        $btn.on('mouseleave', function () { $(this).css('opacity', isMuted ? '0.35' : '0.7'); });
+
+        // Resume/create AudioContext on first user interaction — satisfies browser
+        // autoplay policies so automatic chimes work immediately after.
         $btn.on('click', function () {
-            // Ensure AudioContext exists and is running before toggling
             var ctx = getAudioContext();
             if (ctx && ctx.state === 'suspended') {
                 ctx.resume();
@@ -227,24 +243,30 @@
             saveMuteState();
             updateButtonUI($btn);
 
-            // Play a preview chime when unmuting so the user confirms audio works
+            // Play a preview chime when unmuting so the user knows audio works
             if (!isMuted) {
                 playNotificationSound();
             }
         });
 
-        // Try known Matomo widget header selectors in priority order
-        var $header = $widget.find('.widgetTop').first();
-        if (!$header.length) {
-            $header = $widget.find('.card-header').first();
-        }
+        // 1. Try Matomo dashboard widget header
+        var $widget = $(liveEl).closest('.widget, .card');
+        var $header = $widget.find('.widgetTop, .card-header').first();
 
         if ($header.length) {
             $header.append($btn);
-        } else {
-            // Fallback: insert the button directly above the visitor list
-            $(liveEl).before($btn);
+            return;
         }
+
+        // 2. On the dedicated Live page (Matomo 5) there is no .widgetTop —
+        //    insert a small toolbar div directly above the visitor list so the
+        //    button is always reachable regardless of page layout.
+        var $toolbar = $('<div class="liveNotificationsToolbar"></div>').css({
+            textAlign: 'right',
+            padding: '4px 0'
+        });
+        $toolbar.append($btn);
+        $(liveEl).before($toolbar);
     }
 
     // -------------------------------------------------------------------------
