@@ -1,0 +1,35 @@
+{
+    "name": "LiveNotifications",
+    "description": "Sound notifications for the Visitors in real time widget. Plays a chime when a new visitor arrives.",
+    "version": "1.0.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-b1,<6.0.0-b1",
+        "php": ">=8.1.0"
+    },
+    "authors": [
+        {
+            "name": "Matomo Community",
+            "homepage": "https://matomo.org"
+        }
+    ],
+    "license": "GPL v3+",
+    "keywords": [
+        "live",
+        "notifications",
+        "sound",
+        "realtime",
+        "visitors"
+    ],
+    "support": {
+        "forum": "https://forum.matomo.org"
+    },
+    "archive": {
+        "exclude": [
+            "tests",
+            "node_modules",
+            ".github",
+            ".gitignore"
+        ]
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "LiveNotifications": {
+        "PluginDescription": "Sound notifications for the Visitors in real time widget.",
+        "MuteNotifications": "Mute visitor sound notifications",
+        "UnmuteNotifications": "Unmute visitor sound notifications",
+        "EnabledByDefault": "Enable sound notifications by default",
+        "EnabledByDefaultDesc": "When enabled, the sound chime will be active for all users when they open the Visitors in real time widget. Each user can still mute or unmute individually using the speaker button in the widget.",
+        "NotifyOnlyOnGoal": "Notify only on goal conversions",
+        "NotifyOnlyOnGoalDesc": "When enabled, the chime plays only when a new visitor who converted a goal (or completed an ecommerce order) appears in the widget. Visits without a conversion are silently ignored."
+    }
+}

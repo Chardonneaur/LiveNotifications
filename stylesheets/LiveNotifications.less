@@ -1,0 +1,62 @@
+/**
+ * Matomo - free/libre analytics platform
+ *
+ * @link    https://matomo.org
+ * @license https://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
+ *
+ * LiveNotifications — mute/unmute button styles.
+ *
+ * The button is appended to .widgetTop (dashboard) or .card-header (admin),
+ * so it shares the same row as the widget title.  We keep it small, subtle,
+ * and clearly interactive.
+ */
+
+.liveNotificationsMuteBtn {
+    // Reset browser defaults
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    margin: 0;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
+
+    // Icon sizing
+    font-size: 16px;
+
+    // Subtle integration into the widget header
+    float: right;
+    opacity: 0.65;
+    transition: opacity 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+
+    vertical-align: middle;
+
+    &:hover,
+    &:focus {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.07);
+        border-color: rgba(0, 0, 0, 0.12);
+        outline: none;
+    }
+
+    &:active {
+        background: rgba(0, 0, 0, 0.14);
+    }
+
+    // Muted state — visually de-emphasised
+    &--muted {
+        opacity: 0.35;
+
+        &:hover,
+        &:focus {
+            opacity: 0.75;
+        }
+    }
+
+    // Active (sound on) state
+    &--active {
+        opacity: 0.75;
+    }
+}
