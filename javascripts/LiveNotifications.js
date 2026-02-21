@@ -273,9 +273,27 @@
     // MutationObserver — watch #visitsLive for new visitor rows
     // -------------------------------------------------------------------------
 
+    /**
+     * The Live widget re-orders ALL existing visits on every poll cycle:
+     * it removes each <li class="visit"> and prepends it back to the top.
+     * Without tracking known IDs, every re-order fires a false notification.
+     *
+     * Strategy: seed knownVisitIds from visits already in the DOM when the
+     * observer attaches, then only play a sound when an ID appears for the
+     * first time.
+     */
     function attachVisitObserver(liveEl) {
         if (visitObserver) {
             visitObserver.disconnect();
+        }
+
+        // Seed with visits already present — these are not "new"
+        var knownVisitIds = {};
+        var existing = liveEl.querySelectorAll('li.visit');
+        for (var e = 0; e < existing.length; e++) {
+            if (existing[e].id) {
+                knownVisitIds[existing[e].id] = true;
+            }
         }
 
         visitObserver = new MutationObserver(function (mutations) {
@@ -288,16 +306,27 @@
                         node.classList &&
                         node.classList.contains('visit')
                     ) {
-                        // If the admin enabled "goal-only" mode, skip visits
-                        // that have no goal or ecommerce conversion.
+                        var visitId = node.id;
+
+                        // Already known → the widget is just re-ordering, not a new visit
+                        if (visitId && knownVisitIds[visitId]) {
+                            continue;
+                        }
+
+                        // Register the new ID so subsequent re-orders are silent
+                        if (visitId) {
+                            knownVisitIds[visitId] = true;
+                        }
+
+                        // If "goal-only" mode is on, skip visits without a conversion
                         if (cfg('notifyOnlyOnGoal') && !visitHasConversion(node)) {
-                            return;
+                            continue;
                         }
 
                         if (!isMuted) {
                             playNotificationSound();
                         }
-                        // Only one sound per mutation batch
+                        // One sound per mutation batch is enough
                         return;
                     }
                 }
